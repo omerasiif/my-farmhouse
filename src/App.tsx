@@ -4,7 +4,7 @@ import Navbar from '@/components/Navbar';
 import Hero from '@/components/Hero';
 import Features from '@/components/Features';
 import Gallery from '@/components/Gallery';
-import Location from '@/components/Location';
+//import Location from '@/components/Location';
 import Footer from '@/components/Footer';
 import GalleryPage from '@/pages/GalleryPage';
 import LocationPage from '@/pages/LocationPage';
@@ -31,7 +31,7 @@ function HomePage() {
       <Hero />
       <Features />
       <Gallery />
-      <Location />
+    {/* <Location /> */}
       <Footer />
     </div>
   );
