@@ -9,23 +9,21 @@ interface GalleryImage {
   label: string;
 }
 
-const roomImages: GalleryImage[] = [
-  { src: '/images/1000052433.jpg', label: 'Luxury Room One' },
-  { src: '/images/1000052428_(1).jpg', label: 'Dining Area' },
-  { src: '/images/1000052429.jpg', label: 'Luxury Room Two' },
-  { src: '/images/1000052434_(1).jpg', label: 'Billiards Table' },
+const roomImages = [
+  "/images/room1.png",
+  "/images/room2.png",
+  "/images/room3.png",
 ];
-
 const galleryImages = [
   "/images/64df4da9-621d-4df4-852e-c60637c31810.png",
   "/images/ae5e133d-f2a3-4c05-9233-1c5a3d95ae30.png",
   "/images/c8a7a574-58c0-47b3-b329-b8f212cc564e.png",
 ];
 
-const outdoorImages: GalleryImage[] = [
-  { src: '/images/1000052434_(1).jpg', label: 'Cricket Ground' },
-  { src: '/images/1000052436.jpg', label: 'Sitting Area' },
-  { src: '/images/1000052429.jpg', label: 'Parking Area' },
+const outdoorImages = [
+  "/images/od1.png",
+  "/images/od2.png",
+  "/images/od3.png",
 ];
 
 function useScrollReveal() {
