@@ -1,8 +1,8 @@
 const galleryImages = [
-  '/images/1000052434_(1).jpg',
-  '/images/1000052436.jpg',
-  '/images/1000052428_(1).jpg',
-  '/images/1000052429.jpg',
+ "/images/od1.png",
+  "/images/od2.png",
+  "/images/od3.png",
+  '/images/room2.png",
 ];
 
 export default function Gallery() {
