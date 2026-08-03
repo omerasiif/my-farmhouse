@@ -8,12 +8,22 @@ export default function Hero() {
       className="relative w-full h-screen min-h-[520px] md:min-h-[600px] overflow-hidden flex items-center justify-center"
     >
       {/* Background */}
-      <div
-        className="hero-bg absolute inset-0 bg-cover bg-center bg-no-repeat will-change-transform"
-        style={{
-          backgroundImage: "url('/images/1000052433.jpg')",
-        }}
-      />
+      {/* Desktop Background */}
+<div
+  className="hidden md:block hero-bg absolute inset-0 bg-cover bg-center bg-no-repeat will-change-transform"
+  style={{
+    backgroundImage: "url('/images/hero-desktop.jpg.png')",
+  }}
+/>
+
+{/* Mobile Background */}
+<div
+  className="block md:hidden hero-bg absolute inset-0 bg-cover bg-center bg-no-repeat will-change-transform"
+  style={{
+    backgroundImage: "url('/images/hero-mobile.jpg.png')",
+    backgroundPosition: "center center",
+  }}
+/>
 
       {/* Overlay */}
       <div className="absolute inset-0 bg-black/45" />
