@@ -2,7 +2,6 @@ const galleryImages = [
  "/images/od1.png",
   "/images/od2.png",
   "/images/od3.png",
-  '/images/room2.png",
 ];
 
 export default function Gallery() {
