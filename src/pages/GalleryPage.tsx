@@ -14,6 +14,7 @@ const roomImages = [
   "/images/room2.png",
   "/images/room3.png",
 ];
+
 const galleryImages = [
   "/images/64df4da9-621d-4df4-852e-c60637c31810.png",
   "/images/ae5e133d-f2a3-4c05-9233-1c5a3d95ae30.png",
@@ -25,7 +26,6 @@ const outdoorImages = [
   "/images/od2.png",
   "/images/od3.png",
 ];
-
 function useScrollReveal() {
   const ref = useRef<HTMLDivElement>(null);
   const [visible, setVisible] = useState(false);
