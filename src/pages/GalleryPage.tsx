@@ -9,22 +9,22 @@ interface GalleryImage {
   label: string;
 }
 
-const roomImages = [
-  "/images/room1.png",
-  "/images/room2.png",
-  "/images/room3.png",
+const roomImages: GalleryImage[] = [
+  { src: "/images/room1.png", label: "Room 1" },
+  { src: "/images/room2.png", label: "Room 2" },
+  { src: "/images/room3.png", label: "Room 3" },
 ];
 
-const galleryImages = [
-  "/images/64df4da9-621d-4df4-852e-c60637c31810.png",
-  "/images/ae5e133d-f2a3-4c05-9233-1c5a3d95ae30.png",
-  "/images/c8a7a574-58c0-47b3-b329-b8f212cc564e.png",
+const poolImages: GalleryImage[] = [
+  { src: "/images/64df4da9-621d-4df4-852e-c60637c31810.png", label: "Swimming Pool 1" },
+  { src: "/images/ae5e133d-f2a3-4c05-9233-1c5a3d95ae30.png", label: "Swimming Pool 2" },
+  { src: "/images/c8a7a574-58c0-47b3-b329-b8f212cc564e.png", label: "Swimming Pool 3" },
 ];
 
-const outdoorImages = [
-  "/images/od1.png",
-  "/images/od2.png",
-  "/images/od3.png",
+const outdoorImages: GalleryImage[] = [
+  { src: "/images/od1.png", label: "Outdoor Activity 1" },
+  { src: "/images/od2.png", label: "Outdoor Activity 2" },
+  { src: "/images/od3.png", label: "Outdoor Activity 3" },
 ];
 function useScrollReveal() {
   const ref = useRef<HTMLDivElement>(null);
