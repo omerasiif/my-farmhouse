@@ -1,20 +1,24 @@
 import { Waves, PartyPopper, Trees } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 const features = [
   {
     icon: Waves,
     title: 'Swimming Pool',
     description: 'Relax and enjoy our clean swimming pool.',
+    target: '/gallery#pool',
   },
   {
     icon: PartyPopper,
     title: 'Perfect for Events',
     description: 'Ideal for birthdays, family gatherings, and celebrations.',
+    target: '/gallery#rooms',
   },
   {
     icon: Trees,
     title: 'Peaceful Nature',
     description: "Escape the city's noise and reconnect with nature.",
+    target: '/gallery#outdoor',
   },
 ];
 
@@ -40,20 +44,26 @@ export default function Features() {
           {features.map((feature) => {
             const Icon = feature.icon;
             return (
-              <div
+              <Link
                 key={feature.title}
-                className="group bg-white rounded-3xl p-8 shadow-[0_8px_30px_rgba(46,125,50,0.06)] hover:shadow-[0_20px_50px_rgba(46,125,50,0.15)] transition-all duration-500 hover:-translate-y-2 border border-green-50/50 cursor-pointer"
+                to={feature.target}
+                aria-label={`Go to ${feature.title} in gallery`}
+                className="block"
               >
-                <div className="w-14 h-14 rounded-2xl bg-[#F4FAF3] group-hover:bg-[#2E7D32] flex items-center justify-center mb-6 transition-all duration-500">
-                  <Icon className="w-7 h-7 text-[#2E7D32] group-hover:text-white transition-colors duration-500" strokeWidth={1.8} />
+                <div
+                  className="group bg-white rounded-3xl p-8 shadow-[0_8px_30px_rgba(46,125,50,0.06)] hover:shadow-[0_20px_50px_rgba(46,125,50,0.15)] transition-all duration-500 hover:-translate-y-2 cursor-pointer"
+                >
+                  <div className="w-14 h-14 rounded-2xl bg-[#F4FAF3] group-hover:bg-[#2E7D32] flex items-center justify-center mb-6 transition-all duration-500">
+                    <Icon className="w-7 h-7 text-[#2E7D32] group-hover:text-white transition-colors duration-500" strokeWidth={1.8} />
+                  </div>
+                  <h3 className="text-[#1B5E20] text-xl font-semibold mb-2.5">
+                    {feature.title}
+                  </h3>
+                  <p className="text-gray-500 font-light leading-relaxed text-[15px]">
+                    {feature.description}
+                  </p>
                 </div>
-                <h3 className="text-[#1B5E20] text-xl font-semibold mb-2.5">
-                  {feature.title}
-                </h3>
-                <p className="text-gray-500 font-light leading-relaxed text-[15px]">
-                  {feature.description}
-                </p>
-              </div>
+              </Link>
             );
           })}
         </div>
