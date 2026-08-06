@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { Home, Waves, Target, Phone, ChevronRight } from 'lucide-react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
@@ -12,9 +13,8 @@ interface GalleryImage {
 const roomImages: GalleryImage[] = [
   { src: "/images/room1.png", label: "Room 1" },
   { src: "/images/room2.png", label: "Room 2" },
-  { src: "/images/room3.png", label: "Room 3" },
+  { src: "/images/room3.png", label: "View All Rooms" },
 ];
-
 const poolImages: GalleryImage[] = [
   { src: "/images/64df4da9-621d-4df4-852e-c60637c31810.png", label: "Swimming Pool 1" },
   { src: "/images/ae5e133d-f2a3-4c05-9233-1c5a3d95ae30.png", label: "Swimming Pool 2" },
@@ -24,7 +24,7 @@ const poolImages: GalleryImage[] = [
 const outdoorImages: GalleryImage[] = [
   { src: "/images/od1.png", label: "Outdoor Activity 1" },
   { src: "/images/od2.png", label: "Outdoor Activity 2" },
-  { src: "/images/od3.png", label: "Outdoor Activity 3" },
+  { src: "/images/od3.png", label: "View All Activities" },
 ];
 function useScrollReveal() {
   const ref = useRef<HTMLDivElement>(null);
@@ -70,39 +70,79 @@ function SectionHeader({ icon: Icon, title, description }: { icon: typeof Home; 
   );
 }
 
-function ImageGrid({ images, onImageClick }: { images: GalleryImage[]; onImageClick: (i: number) => void }) {
-  const { ref, visible } = useScrollReveal();
+function ImageGrid({
+  images,
+  section,
+}: {
+  images: GalleryImage[];
+  section: "rooms" | "pool" | "outdoor";
+}) {
   return (
-    <div
-      ref={ref}
-      className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 transition-all duration-700 ${
-        visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
-      }`}
-    >
-      {images.map((img, i) => (
-        <button
-          key={img.src + i}
-          onClick={() => onImageClick(i)}
-          className={`group relative overflow-hidden rounded-3xl shadow-[0_8px_30px_rgba(46,125,50,0.08)] hover:shadow-[0_20px_50px_rgba(46,125,50,0.18)] transition-all duration-500 hover:-translate-y-1.5 cursor-pointer text-left ${
-            i === 0 && images.length === 4 ? 'sm:col-span-2 sm:row-span-2' : ''
-          }`}
-          style={{
-            aspectRatio: images.length === 4 && i === 0 ? '16 / 9' : '4 / 3',
-            animationDelay: `${i * 0.1}s`,
-          }}
-        >
-          <img
-            src={img.src}
-            alt={img.label}
-            loading="lazy"
-            className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-110"
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-          <div className="absolute bottom-0 left-0 right-0 p-5 translate-y-3 group-hover:translate-y-0 opacity-0 group-hover:opacity-100 transition-all duration-500">
-            <p className="text-white font-medium text-sm tracking-wide">{img.label}</p>
+    <div className="grid gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
+      {images.map((img, index) => {
+        const isMoreCard =
+          (section === "rooms" && index === 2) ||
+          (section === "outdoor" && index === 2);
+
+        const link =
+          section === "rooms"
+            ? "/gallery/rooms"
+            : "/gallery/outdoor";
+
+        const remaining =
+          section === "rooms" ? "+5 More" : "+6 More";
+
+        const card = (
+          <div className="group relative overflow-hidden rounded-3xl shadow-lg cursor-pointer">
+            <img
+              src={img.src}
+              alt={img.label}
+              className="w-full h-72 object-cover transition duration-500 group-hover:scale-110"
+            />
+
+            {isMoreCard ? (
+              <div className="absolute inset-0 bg-black/55 flex flex-col items-center justify-center text-white transition duration-300 group-hover:bg-black/65">
+
+                <h3 className="text-4xl font-bold">
+                  {remaining}
+                </h3>
+
+                <p className="mt-3 text-lg font-medium">
+                  {section === "rooms"
+                    ? "View All Rooms →"
+                    : "View All Activities →"}
+                </p>
+
+              </div>
+            ) : (
+              <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-5">
+
+                <h3 className="text-white text-xl font-semibold">
+                  {img.label}
+                </h3>
+
+              </div>
+            )}
           </div>
-        </button>
-      ))}
+        );
+
+        if (isMoreCard) {
+          return (
+            <Link key={index} to={link}>
+              {card}
+            </Link>
+          );
+        }
+
+        return (
+          <div
+            key={index}
+            onClick={() => openLightbox(index, images)}
+          >
+            {card}
+          </div>
+        );
+      })}
     </div>
   );
 }
