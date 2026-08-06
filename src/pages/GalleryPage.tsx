@@ -73,9 +73,11 @@ function SectionHeader({ icon: Icon, title, description }: { icon: typeof Home; 
 function ImageGrid({
   images,
   section,
+  onImageClick,
 }: {
   images: GalleryImage[];
   section: "rooms" | "pool" | "outdoor";
+  onImageClick: (index: number) => void;
 }) {
   return (
     <div className="grid gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
@@ -90,7 +92,7 @@ function ImageGrid({
             : "/gallery/outdoor";
 
         const remaining =
-          section === "rooms" ? "+5 More" : "+6 More";
+          section === "rooms" ? "+5" : "+6";
 
         const card = (
           <div className="group relative overflow-hidden rounded-3xl shadow-lg cursor-pointer">
@@ -101,17 +103,11 @@ function ImageGrid({
             />
 
             {isMoreCard ? (
-              <div className="absolute inset-0 bg-black/55 flex flex-col items-center justify-center text-white transition duration-300 group-hover:bg-black/65">
+              <div className="absolute inset-0 bg-black/30 flex items-center justify-center text-white transition duration-300 group-hover:bg-black/40">
 
                 <h3 className="text-4xl font-bold">
                   {remaining}
                 </h3>
-
-                <p className="mt-3 text-lg font-medium">
-                  {section === "rooms"
-                    ? "View All Rooms →"
-                    : "View All Activities →"}
-                </p>
 
               </div>
             ) : (
@@ -128,7 +124,7 @@ function ImageGrid({
 
         if (isMoreCard) {
           return (
-            <Link key={index} to={link}>
+            <Link key={index} to={link} aria-label={section === 'rooms' ? 'View all rooms' : 'View all activities'}>
               {card}
             </Link>
           );
@@ -137,7 +133,7 @@ function ImageGrid({
         return (
           <div
             key={index}
-            onClick={() => openLightbox(index, images)}
+            onClick={() => onImageClick(index)}
           >
             {card}
           </div>
@@ -210,7 +206,7 @@ export default function GalleryPage() {
         <div className="absolute inset-0 bg-black/55" />
         <div className="absolute inset-0 bg-gradient-to-b from-[#1B5E20]/40 via-transparent to-black/40" />
         <div className="relative z-10 text-center px-6 max-w-3xl">
-          <div className="animate-fade-in delay-200 inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm border border-white/20 text-white/90 text-xs font-medium px-4 py-1.5 rounded-full tracking-widest uppercase mb-5">
+          <div className="animate-fade-in delay-200 inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm border border-white/20 text-white/90 text-xs font-medium px-4 py-1.5 rounded-full tracking-tight">
             <span className="w-1.5 h-1.5 rounded-full bg-green-400 inline-block" />
             Photo Gallery
           </div>
@@ -237,7 +233,7 @@ export default function GalleryPage() {
             title="Luxury Rooms"
             description="Our spacious and beautifully designed rooms provide the perfect place to relax with your family and friends."
           />
-          <ImageGrid images={roomImages} onImageClick={(i) => openLightbox(roomImages, i)} />
+          <ImageGrid images={roomImages} section="rooms" onImageClick={(i) => openLightbox(roomImages, i)} />
         </div>
       </section>
 
@@ -251,7 +247,7 @@ export default function GalleryPage() {
             title="Swimming Pools"
             description="Enjoy refreshing moments in our clean and spacious swimming pools designed for everyone."
           />
-          <ImageGrid images={poolImages} onImageClick={(i) => openLightbox(poolImages, i)} />
+          <ImageGrid images={poolImages} section="pool" onImageClick={(i) => openLightbox(poolImages, i)} />
         </div>
       </section>
 
@@ -265,7 +261,7 @@ export default function GalleryPage() {
             title="Outdoor Activities"
             description="Spend quality time with your family and friends while enjoying our outdoor recreational facilities."
           />
-          <ImageGrid images={outdoorImages} onImageClick={(i) => openLightbox(outdoorImages, i)} />
+          <ImageGrid images={outdoorImages} section="outdoor" onImageClick={(i) => openLightbox(outdoorImages, i)} />
         </div>
       </section>
 
@@ -292,14 +288,14 @@ export default function GalleryPage() {
               href="https://wa.me/918686465007"
               target="_blank"
               rel="noopener noreferrer"
-              className="bg-[#25D366] hover:bg-[#1ebe5d] text-white font-semibold px-8 py-3.5 rounded-full shadow-xl hover:shadow-green-900/50 transition-all duration-300 hover:scale-105 text-sm tracking-wide inline-flex items-center gap-2"
+              className="bg-[#25D366] hover:bg-[#1ebe5d] text-white font-semibold px-8 py-3.5 rounded-full shadow-xl hover:shadow-green-900/50 transition-all duration-300 hover:scale-105 text-sm tracking-tight"
             >
               Book Now
               <ChevronRight className="w-4 h-4" />
             </a>
             <a
               href="tel:+918686465007"
-              className="bg-white/10 hover:bg-white/20 backdrop-blur-sm text-white font-semibold px-8 py-3.5 rounded-full border border-white/30 hover:border-white/60 transition-all duration-300 hover:scale-105 text-sm tracking-wide inline-flex items-center gap-2"
+              className="bg-white/10 hover:bg-white/20 backdrop-blur-sm text-white font-semibold px-8 py-3.5 rounded-full border border-white/30 hover:border-white/60 transition-all duration-300 hover:scale-105 text-sm tracking-tight"
             >
               <Phone className="w-4 h-4" />
               Contact Us
