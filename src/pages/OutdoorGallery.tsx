@@ -6,12 +6,12 @@ const outdoorImages = [
   "/images/od1.png",
   "/images/od2.png",
   "/images/od3.png",
-  "/images/od4.png",
-  "/images/od5.png",
-  "/images/od6.png",
-  "/images/od7.png",
-  "/images/od8.png",
-  "/images/od9.png",
+  "/images/od4.jpeg",
+  "/images/od5.jpeg",
+  "/images/od6.jpeg",
+  "/images/od7.jpeg",
+  "/images/od8.jpeg",
+  "/images/od9.jpeg",
 ];
 
 export default function OutdoorGallery() {
