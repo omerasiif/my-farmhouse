@@ -8,7 +8,8 @@ import Gallery from '@/components/Gallery';
 import Footer from '@/components/Footer';
 import GalleryPage from '@/pages/GalleryPage';
 import LocationPage from '@/pages/LocationPage';
-
+import RoomsGallery from '@/pages/RoomsGallery';
+import OutdoorGallery from '@/pages/OutdoorGallery';
 function ScrollToHash() {
   const { hash, pathname } = useLocation();
   useEffect(() => {
@@ -41,11 +42,14 @@ function App() {
   return (
     <BrowserRouter>
       <ScrollToHash />
-      <Routes>
-        <Route path="/" element={<HomePage />} />
-        <Route path="/gallery" element={<GalleryPage />} />
-        <Route path="/location" element={<LocationPage />} />
-      </Routes>
+     <Routes>
+  <Route path="/" element={<HomePage />} />
+  <Route path="/gallery" element={<GalleryPage />} />
+  <Route path="/location" element={<LocationPage />} />
+
+  <Route path="/gallery/rooms" element={<RoomsGallery />} />
+  <Route path="/gallery/outdoor" element={<OutdoorGallery />} />
+</Routes>
     </BrowserRouter>
   );
 }
