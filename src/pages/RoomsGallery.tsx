@@ -6,11 +6,11 @@ const roomImages = [
   "/images/room1.png",
   "/images/room2.png",
   "/images/room3.png",
-
-  // Add more room images below whenever you upload them
-  // "/images/room4.png",
-  // "/images/room5.png",
-  // "/images/room6.png",
+  "/images/room4.jpeg",
+  "/images/room5.jpeg",
+  "/images/room6.jpeg",
+  "/images/room7.jpeg",
+  "/images/room8.jpeg",
 ];
 
 export default function RoomsGallery() {
