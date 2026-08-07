@@ -1,4 +1,6 @@
-import { useState, useRef, useEffect } from 'react';
+
+
+ import { useState, useRef, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Home, Waves, Target, Phone, ChevronRight } from 'lucide-react';
 import Navbar from '@/components/Navbar';
@@ -71,25 +73,6 @@ function SectionHeader({ icon: Icon, title, description }: { icon: typeof Home; 
   );
 }
 
-/**
- * Mobile carousel (only renders < md breakpoint).
- *
- * What was actually broken and how this fixes it:
- * - Card width was assumed in vw units but translateX moved by a DIFFERENT
- *   vw value than the rendered card actually took up (because maxWidth:220px
- *   kicked in on many phones, while the transform still assumed pure 46vw).
- *   That mismatch is exactly what cuts cards in half. This version MEASURES
- *   the real rendered card width with ResizeObserver and uses that number,
- *   in px, for both the track width and the transform — so they can never
- *   disagree.
- * - The track now has an explicit total width (sum of real card widths + gaps)
- *   so it can never be clipped by its parent.
- * - Swipe now listens to native touchstart/move/end (most reliable on real
- *   phones) with pointer events kept only as a non-touch fallback.
- * - touch-action: pan-y on the container lets vertical page scroll pass
- *   through untouched while horizontal drags are captured by the carousel,
- *   and the page itself never gets horizontal overflow.
- */
 function MobileCarousel({
   images,
   section,
@@ -104,7 +87,7 @@ function MobileCarousel({
   const firstCardRef = useRef<HTMLDivElement | null>(null);
 
   const [index, setIndex] = useState(0);
-  const [step, setStep] = useState(0); // real card width + gap, in px
+  const [step, setStep] = useState(0);
 
   const autoplayRef = useRef<number | null>(null);
   const interactionRef = useRef(false);
@@ -436,7 +419,7 @@ export default function GalleryPage() {
 
       <WaveDivider />
 
-      <section className="bg-[#F4FAF3] py-24 px-6">
+      <section className="bg-[#F4FAF3] pt-16 pb-8 px-6">
         <div className="max-w-6xl mx-auto">
           <SectionHeader icon={Home} title="Luxury Rooms" description="Our spacious and beautifully designed rooms provide the perfect place to relax with your family and friends." />
           <div className="hidden md:block">
@@ -450,7 +433,7 @@ export default function GalleryPage() {
 
       <WaveDividerUp />
 
-      <section className="bg-white py-24 px-6">
+      <section className="bg-white pt-8 pb-8 px-6">
         <div className="max-w-6xl mx-auto">
           <SectionHeader icon={Waves} title="Swimming Pools" description="Enjoy refreshing moments in our clean and spacious swimming pools designed for everyone." />
           <div className="hidden md:block">
@@ -464,7 +447,7 @@ export default function GalleryPage() {
 
       <WaveDivider />
 
-      <section className="bg-[#F4FAF3] py-24 px-6">
+      <section className="bg-[#F4FAF3] pt-8 pb-16 px-6">
         <div className="max-w-6xl mx-auto">
           <SectionHeader icon={Target} title="Outdoor Activities" description="Spend quality time with your family and friends while enjoying our outdoor recreational facilities." />
           <div className="hidden md:block">
