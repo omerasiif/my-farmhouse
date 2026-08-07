@@ -70,6 +70,169 @@ function SectionHeader({ icon: Icon, title, description }: { icon: typeof Home; 
   );
 }
 
+// Mobile carousel component (used only on mobile screens)
+function MobileCarousel({
+  images,
+  section,
+  onImageClick,
+}: {
+  images: GalleryImage[];
+  section: 'rooms' | 'pool' | 'outdoor';
+  onImageClick: (index: number) => void;
+}) {
+  const isMoreCardIndex = 2; // third card is the "more" card in arrays
+  const containerRef = useRef<HTMLDivElement | null>(null);
+  const [index, setIndex] = useState(0);
+  const autoplayRef = useRef<number | null>(null);
+  const interactionRef = useRef(false);
+
+  const slideWidthVw = 46; // 46vw as requested
+  const transitionMs = 700;
+  const autoplayMs = 6000;
+
+  useEffect(() => {
+    startAutoplay();
+    return () => stopAutoplay();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  function startAutoplay() {
+    stopAutoplay();
+    autoplayRef.current = window.setInterval(() => {
+      if (!interactionRef.current) {
+        setIndex((i) => (i + 1) % images.length);
+      }
+    }, autoplayMs) as unknown as number;
+  }
+
+  function stopAutoplay() {
+    if (autoplayRef.current) {
+      clearInterval(autoplayRef.current);
+      autoplayRef.current = null;
+    }
+  }
+
+  // Pause on touch interaction
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+
+    let startX = 0;
+    let moved = 0;
+
+    function onPointerDown(e: PointerEvent) {
+      interactionRef.current = true;
+      stopAutoplay();
+      startX = e.clientX;
+      moved = 0;
+      (e.target as Element).setPointerCapture(e.pointerId);
+    }
+    function onPointerMove(e: PointerEvent) {
+      moved = e.clientX - startX;
+    }
+    function onPointerUp(e: PointerEvent) {
+      interactionRef.current = false;
+      const threshold = 40; // px
+      if (moved > threshold) {
+        // swipe right -> previous
+        setIndex((i) => Math.max(i - 1, 0));
+      } else if (moved < -threshold) {
+        // swipe left -> next
+        setIndex((i) => Math.min(i + 1, images.length - 1));
+      }
+      // restart autoplay after short delay
+      setTimeout(() => startAutoplay(), 1200);
+    }
+
+    el.addEventListener('pointerdown', onPointerDown);
+    el.addEventListener('pointermove', onPointerMove);
+    el.addEventListener('pointerup', onPointerUp);
+    el.addEventListener('pointercancel', onPointerUp);
+
+    return () => {
+      el.removeEventListener('pointerdown', onPointerDown);
+      el.removeEventListener('pointermove', onPointerMove);
+      el.removeEventListener('pointerup', onPointerUp);
+      el.removeEventListener('pointercancel', onPointerUp);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [images.length]);
+
+  // ensure index within bounds
+  useEffect(() => {
+    if (index < 0) setIndex(0);
+    if (index > images.length - 1) setIndex(images.length - 1);
+  }, [index, images.length]);
+
+  const translateX = `calc(-${index * slideWidthVw}vw)`; // move by vw units per slide
+
+  const linkForSection = section === 'rooms' ? '/gallery/rooms' : '/gallery/outdoor';
+
+  return (
+    <div className="md:hidden">
+      <div
+        ref={containerRef}
+        className="relative overflow-hidden"
+        style={{ paddingLeft: '8px', paddingRight: '8px' }}
+        aria-roledescription="carousel"
+      >
+        <div
+          className="flex items-stretch gap-4 transition-transform"
+          style={{ transform: translateX, transition: `transform ${transitionMs}ms ease` }}
+        >
+          {images.map((img, i) => {
+            const isMoreCard = i === isMoreCardIndex && (section === 'rooms' || section === 'outdoor');
+            const card = (
+              <div
+                key={i}
+                className="flex-shrink-0 rounded-3xl overflow-hidden shadow-lg bg-white"
+                style={{ width: `${slideWidthVw}vw`, height: '200px' }}
+              >
+                <img
+                  src={img.src}
+                  alt={img.label}
+                  className="w-full h-full object-cover"
+                />
+
+                {isMoreCard ? (
+                  <div className="absolute inset-0 flex items-center justify-center text-white pointer-events-none">
+                    <div className="absolute inset-0 bg-black/30 rounded-3xl" />
+                    <div className="relative z-10 text-2xl font-bold text-white">{section === 'rooms' ? '+5' : '+6'}</div>
+                  </div>
+                ) : (
+                  <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-3 rounded-b-3xl">
+                    <h3 className="text-white text-sm font-semibold">{img.label}</h3>
+                  </div>
+                )}
+              </div>
+            );
+
+            if (isMoreCard) {
+              return (
+                <Link key={i} to={linkForSection} className="flex-shrink-0" aria-label={`View all ${section}`}>
+                  {card}
+                </Link>
+              );
+            }
+
+            return (
+              <button
+                key={i}
+                onClick={() => onImageClick(i)}
+                aria-label={`Open ${img.label}`}
+                className="flex-shrink-0 p-0 border-0 bg-transparent"
+                style={{ width: `${slideWidthVw}vw`, height: '200px' }}
+              >
+                {card}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function ImageGrid({
   images,
   section,
@@ -206,7 +369,7 @@ export default function GalleryPage() {
         <div className="absolute inset-0 bg-black/55" />
         <div className="absolute inset-0 bg-gradient-to-b from-[#1B5E20]/40 via-transparent to-black/40" />
         <div className="relative z-10 text-center px-6 max-w-3xl">
-          <div className="animate-fade-in delay-200 inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm border border-white/20 text-white/90 text-xs font-medium px-4 py-1.5 rounded-full tracking-tight">
+          <div className="animate-fade-in delay-200 inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm border border-white/20 text-white/90 text-xs font-medium px-4 py-1.5 rounded-full t[...]
             <span className="w-1.5 h-1.5 rounded-full bg-green-400 inline-block" />
             Photo Gallery
           </div>
@@ -233,7 +396,16 @@ export default function GalleryPage() {
             title="Luxury Rooms"
             description="Our spacious and beautifully designed rooms provide the perfect place to relax with your family and friends."
           />
-          <ImageGrid images={roomImages} section="rooms" onImageClick={(i) => openLightbox(roomImages, i)} />
+
+          {/* Desktop grid (unchanged) */}
+          <div className="hidden md:block">
+            <ImageGrid images={roomImages} section="rooms" onImageClick={(i) => openLightbox(roomImages, i)} />
+          </div>
+
+          {/* Mobile carousel */}
+          <div className="md:hidden">
+            <MobileCarousel images={roomImages} section="rooms" onImageClick={(i) => openLightbox(roomImages, i)} />
+          </div>
         </div>
       </section>
 
@@ -247,7 +419,14 @@ export default function GalleryPage() {
             title="Swimming Pools"
             description="Enjoy refreshing moments in our clean and spacious swimming pools designed for everyone."
           />
-          <ImageGrid images={poolImages} section="pool" onImageClick={(i) => openLightbox(poolImages, i)} />
+
+          <div className="hidden md:block">
+            <ImageGrid images={poolImages} section="pool" onImageClick={(i) => openLightbox(poolImages, i)} />
+          </div>
+
+          <div className="md:hidden">
+            <MobileCarousel images={poolImages} section="pool" onImageClick={(i) => openLightbox(poolImages, i)} />
+          </div>
         </div>
       </section>
 
@@ -261,7 +440,14 @@ export default function GalleryPage() {
             title="Outdoor Activities"
             description="Spend quality time with your family and friends while enjoying our outdoor recreational facilities."
           />
-          <ImageGrid images={outdoorImages} section="outdoor" onImageClick={(i) => openLightbox(outdoorImages, i)} />
+
+          <div className="hidden md:block">
+            <ImageGrid images={outdoorImages} section="outdoor" onImageClick={(i) => openLightbox(outdoorImages, i)} />
+          </div>
+
+          <div className="md:hidden">
+            <MobileCarousel images={outdoorImages} section="outdoor" onImageClick={(i) => openLightbox(outdoorImages, i)} />
+          </div>
         </div>
       </section>
 
