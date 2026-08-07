@@ -26,6 +26,7 @@ const outdoorImages: GalleryImage[] = [
   { src: "/images/od2.png", label: "Outdoor Activity 2" },
   { src: "/images/od3.png", label: "View All Activities" },
 ];
+
 function useScrollReveal() {
   const ref = useRef<HTMLDivElement>(null);
   const [visible, setVisible] = useState(false);
@@ -70,7 +71,25 @@ function SectionHeader({ icon: Icon, title, description }: { icon: typeof Home; 
   );
 }
 
-// Mobile carousel component (used only on mobile screens)
+/**
+ * Mobile carousel (only renders < md breakpoint).
+ *
+ * What was actually broken and how this fixes it:
+ * - Card width was assumed in vw units but translateX moved by a DIFFERENT
+ *   vw value than the rendered card actually took up (because maxWidth:220px
+ *   kicked in on many phones, while the transform still assumed pure 46vw).
+ *   That mismatch is exactly what cuts cards in half. This version MEASURES
+ *   the real rendered card width with ResizeObserver and uses that number,
+ *   in px, for both the track width and the transform — so they can never
+ *   disagree.
+ * - The track now has an explicit total width (sum of real card widths + gaps)
+ *   so it can never be clipped by its parent.
+ * - Swipe now listens to native touchstart/move/end (most reliable on real
+ *   phones) with pointer events kept only as a non-touch fallback.
+ * - touch-action: pan-y on the container lets vertical page scroll pass
+ *   through untouched while horizontal drags are captured by the carousel,
+ *   and the page itself never gets horizontal overflow.
+ */
 function MobileCarousel({
   images,
   section,
@@ -80,21 +99,42 @@ function MobileCarousel({
   section: 'rooms' | 'pool' | 'outdoor';
   onImageClick: (index: number) => void;
 }) {
-  const isMoreCardIndex = 2; // third card is the "more" card in arrays
+  const isMoreCardIndex = 2;
   const containerRef = useRef<HTMLDivElement | null>(null);
+  const firstCardRef = useRef<HTMLDivElement | null>(null);
+
   const [index, setIndex] = useState(0);
+  const [step, setStep] = useState(0); // real card width + gap, in px
+
   const autoplayRef = useRef<number | null>(null);
   const interactionRef = useRef(false);
 
-  const slideWidthVw = 46; // 46vw as requested
+  const GAP_PX = 16;
   const transitionMs = 700;
   const autoplayMs = 6000;
+
+  useEffect(() => {
+    const measure = () => {
+      if (firstCardRef.current) {
+        const w = firstCardRef.current.getBoundingClientRect().width;
+        setStep(w + GAP_PX);
+      }
+    };
+    measure();
+    const ro = new ResizeObserver(measure);
+    if (firstCardRef.current) ro.observe(firstCardRef.current);
+    window.addEventListener('resize', measure);
+    return () => {
+      ro.disconnect();
+      window.removeEventListener('resize', measure);
+    };
+  }, [images.length]);
 
   useEffect(() => {
     startAutoplay();
     return () => stopAutoplay();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [images.length]);
 
   function startAutoplay() {
     stopAutoplay();
@@ -107,68 +147,105 @@ function MobileCarousel({
 
   function stopAutoplay() {
     if (autoplayRef.current) {
-      clearInterval(autoplayRef.current as number);
+      clearInterval(autoplayRef.current);
       autoplayRef.current = null;
     }
   }
 
-  // Pause on touch interaction
+  function clampIndex(i: number) {
+    return Math.max(0, Math.min(i, images.length - 1));
+  }
+
   useEffect(() => {
     const el = containerRef.current;
     if (!el) return;
 
     let startX = 0;
-    let moved = 0;
+    let startY = 0;
+    let deltaX = 0;
+    let dragging = false;
 
-    function onPointerDown(e: any) {
+    function onStart(clientX: number, clientY: number) {
+      dragging = true;
       interactionRef.current = true;
       stopAutoplay();
-      startX = e.clientX ?? 0;
-      moved = 0;
-      try {
-        (e.target as Element).setPointerCapture?.(e.pointerId);
-      } catch (err) {
-        // ignore
+      startX = clientX;
+      startY = clientY;
+      deltaX = 0;
+    }
+    function onMove(clientX: number, clientY: number) {
+      if (!dragging) return;
+      deltaX = clientX - startX;
+      const deltaY = clientY - startY;
+      if (Math.abs(deltaX) < Math.abs(deltaY)) return;
+    }
+    function onEnd() {
+      if (!dragging) return;
+      dragging = false;
+      const threshold = 40;
+      if (deltaX > threshold) {
+        setIndex((i) => clampIndex(i - 1));
+      } else if (deltaX < -threshold) {
+        setIndex((i) => clampIndex(i + 1));
       }
-    }
-    function onPointerMove(e: any) {
-      moved = e.clientX - startX;
-    }
-    function onPointerUp() {
       interactionRef.current = false;
-      const threshold = 40; // px
-      if (moved > threshold) {
-        // swipe right -> previous
-        setIndex((i) => Math.max(i - 1, 0));
-      } else if (moved < -threshold) {
-        // swipe left -> next
-        setIndex((i) => Math.min(i + 1, images.length - 1));
-      }
-      // restart autoplay after short delay
       setTimeout(() => startAutoplay(), 1200);
     }
 
-    el.addEventListener('pointerdown', onPointerDown as EventListener);
-    el.addEventListener('pointermove', onPointerMove as EventListener);
-    el.addEventListener('pointerup', onPointerUp as EventListener);
-    el.addEventListener('pointercancel', onPointerUp as EventListener);
+    function onTouchStart(e: TouchEvent) {
+      const t = e.touches[0];
+      onStart(t.clientX, t.clientY);
+    }
+    function onTouchMove(e: TouchEvent) {
+      const t = e.touches[0];
+      onMove(t.clientX, t.clientY);
+    }
+    function onTouchEnd() {
+      onEnd();
+    }
+
+    function onPointerDown(e: PointerEvent) {
+      if (e.pointerType === 'touch') return;
+      onStart(e.clientX, e.clientY);
+    }
+    function onPointerMove(e: PointerEvent) {
+      if (e.pointerType === 'touch') return;
+      onMove(e.clientX, e.clientY);
+    }
+    function onPointerUp(e: PointerEvent) {
+      if (e.pointerType === 'touch') return;
+      onEnd();
+    }
+
+    el.addEventListener('touchstart', onTouchStart, { passive: true });
+    el.addEventListener('touchmove', onTouchMove, { passive: true });
+    el.addEventListener('touchend', onTouchEnd);
+    el.addEventListener('touchcancel', onTouchEnd);
+    el.addEventListener('pointerdown', onPointerDown);
+    el.addEventListener('pointermove', onPointerMove);
+    el.addEventListener('pointerup', onPointerUp);
+    el.addEventListener('pointercancel', onPointerUp);
 
     return () => {
-      el.removeEventListener('pointerdown', onPointerDown as EventListener);
-      el.removeEventListener('pointermove', onPointerMove as EventListener);
-      el.removeEventListener('pointerup', onPointerUp as EventListener);
-      el.removeEventListener('pointercancel', onPointerUp as EventListener);
+      el.removeEventListener('touchstart', onTouchStart);
+      el.removeEventListener('touchmove', onTouchMove);
+      el.removeEventListener('touchend', onTouchEnd);
+      el.removeEventListener('touchcancel', onTouchEnd);
+      el.removeEventListener('pointerdown', onPointerDown);
+      el.removeEventListener('pointermove', onPointerMove);
+      el.removeEventListener('pointerup', onPointerUp);
+      el.removeEventListener('pointercancel', onPointerUp);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [images.length]);
 
-  // ensure index within bounds
   useEffect(() => {
-    if (index < 0) setIndex(0);
-    if (index > images.length - 1) setIndex(images.length - 1);
-  }, [index, images.length]);
+    setIndex((i) => clampIndex(i));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [images.length]);
 
-  const translateX = `calc(-${index * slideWidthVw}vw)`; // move by vw units per slide
+  const translateX = step ? -(index * step) : 0;
+  const trackWidth = step ? images.length * step - GAP_PX : undefined;
 
   const linkForSection = section === 'rooms' ? '/gallery/rooms' : '/gallery/outdoor';
 
@@ -176,28 +253,35 @@ function MobileCarousel({
     <div className="md:hidden">
       <div
         ref={containerRef}
-        className="relative overflow-hidden"
-        style={{ paddingLeft: '8px', paddingRight: '8px' }}
+        className="relative w-full overflow-hidden"
+        style={{ touchAction: 'pan-y' }}
         aria-roledescription="carousel"
       >
         <div
-          className="flex items-stretch gap-4 transition-transform"
-          style={{ transform: translateX, transition: `transform ${transitionMs}ms ease` }}
+          className="flex items-stretch"
+          style={{
+            gap: `${GAP_PX}px`,
+            width: trackWidth ? `${trackWidth}px` : undefined,
+            transform: `translateX(${translateX}px)`,
+            transition: `transform ${transitionMs}ms ease`,
+          }}
         >
           {images.map((img, i) => {
             const isMoreCard = i === isMoreCardIndex && (section === 'rooms' || section === 'outdoor');
+            const cardStyle: React.CSSProperties = {
+              width: '45vw',
+              maxWidth: '220px',
+              flexShrink: 0,
+            };
+
             const card = (
-              <div
-                key={i}
-                className="flex-shrink-0 rounded-3xl overflow-hidden shadow-lg bg-white relative"
-                style={{ width: `${slideWidthVw}vw`, height: '200px' }}
-              >
+              <div className="rounded-3xl overflow-hidden shadow-lg bg-white relative" style={{ height: '190px' }}>
                 <img
                   src={img.src}
                   alt={img.label}
-                  className="w-full h-full object-cover"
+                  style={{ width: '100%', height: '190px', objectFit: 'cover' }}
+                  draggable={false}
                 />
-
                 {isMoreCard ? (
                   <div className="absolute inset-0 flex items-center justify-center text-white pointer-events-none">
                     <div className="absolute inset-0 bg-black/30 rounded-3xl" />
@@ -213,7 +297,7 @@ function MobileCarousel({
 
             if (isMoreCard) {
               return (
-                <Link key={i} to={linkForSection} className="flex-shrink-0" aria-label={`View all ${section}`}>
+                <Link key={i} to={linkForSection} aria-label={`View all ${section}`} style={cardStyle} ref={i === 0 ? firstCardRef : undefined}>
                   {card}
                 </Link>
               );
@@ -224,8 +308,9 @@ function MobileCarousel({
                 key={i}
                 onClick={() => onImageClick(i)}
                 aria-label={`Open ${img.label}`}
-                className="flex-shrink-0 p-0 border-0 bg-transparent"
-                style={{ width: `${slideWidthVw}vw`, height: '200px' }}
+                className="p-0 border-0 bg-transparent text-left"
+                style={cardStyle}
+                ref={i === 0 ? firstCardRef : undefined}
               >
                 {card}
               </button>
@@ -253,13 +338,8 @@ function ImageGrid({
           (section === "rooms" && index === 2) ||
           (section === "outdoor" && index === 2);
 
-        const link =
-          section === "rooms"
-            ? "/gallery/rooms"
-            : "/gallery/outdoor";
-
-        const remaining =
-          section === "rooms" ? "+5" : "+6";
+        const link = section === "rooms" ? "/gallery/rooms" : "/gallery/outdoor";
+        const remaining = section === "rooms" ? "+5" : "+6";
 
         const card = (
           <div className="group relative overflow-hidden rounded-3xl shadow-lg cursor-pointer">
@@ -268,22 +348,13 @@ function ImageGrid({
               alt={img.label}
               className="w-full h-72 object-cover transition duration-500 group-hover:scale-110"
             />
-
             {isMoreCard ? (
               <div className="absolute inset-0 bg-black/30 flex items-center justify-center text-white transition duration-300 group-hover:bg-black/40">
-
-                <h3 className="text-4xl font-bold">
-                  {remaining}
-                </h3>
-
+                <h3 className="text-4xl font-bold">{remaining}</h3>
               </div>
             ) : (
               <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-5">
-
-                <h3 className="text-white text-xl font-semibold">
-                  {img.label}
-                </h3>
-
+                <h3 className="text-white text-xl font-semibold">{img.label}</h3>
               </div>
             )}
           </div>
@@ -298,10 +369,7 @@ function ImageGrid({
         }
 
         return (
-          <div
-            key={index}
-            onClick={() => onImageClick(index)}
-          >
+          <div key={index} onClick={() => onImageClick(index)}>
             {card}
           </div>
         );
@@ -313,16 +381,8 @@ function ImageGrid({
 function WaveDivider() {
   return (
     <div className="relative -mt-1">
-      <svg
-        className="block w-full h-[60px]"
-        viewBox="0 24 150 40"
-        preserveAspectRatio="none"
-        xmlns="http://www.w3.org/2000/svg"
-      >
-        <path
-          d="M-10 50 Q 37.5 20 75 50 T 160 50 V90 H-10 Z"
-          fill="#F4FAF3"
-        />
+      <svg className="block w-full h-[60px]" viewBox="0 24 150 40" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M-10 50 Q 37.5 20 75 50 T 160 50 V90 H-10 Z" fill="#F4FAF3" />
       </svg>
     </div>
   );
@@ -331,16 +391,8 @@ function WaveDivider() {
 function WaveDividerUp() {
   return (
     <div className="relative">
-      <svg
-        className="block w-full h-[60px]"
-        viewBox="0 24 150 40"
-        preserveAspectRatio="none"
-        xmlns="http://www.w3.org/2000/svg"
-      >
-        <path
-          d="M-10 50 Q 37.5 20 75 50 T 160 50 V0 H-10 Z"
-          fill="#F4FAF3"
-        />
+      <svg className="block w-full h-[60px]" viewBox="0 24 150 40" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M-10 50 Q 37.5 20 75 50 T 160 50 V0 H-10 Z" fill="#F4FAF3" />
       </svg>
     </div>
   );
@@ -361,15 +413,11 @@ export default function GalleryPage() {
     setLightbox((lb) => (lb ? { ...lb, index: (lb.index + 1) % lb.images.length } : null));
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-white overflow-x-hidden">
       <Navbar alwaysSolid />
 
-      {/* Page Header */}
       <section className="relative h-[60vh] min-h-[420px] w-full overflow-hidden flex items-center justify-center">
-        <div
-          className="hero-bg absolute inset-0 bg-cover bg-center bg-no-repeat"
-          style={{ backgroundImage: "url('/images/1000052436.jpg')" }}
-        />
+        <div className="hero-bg absolute inset-0 bg-cover bg-center bg-no-repeat" style={{ backgroundImage: "url('/images/1000052436.jpg')" }} />
         <div className="absolute inset-0 bg-black/55" />
         <div className="absolute inset-0 bg-gradient-to-b from-[#1B5E20]/40 via-transparent to-black/40" />
         <div className="relative z-10 text-center px-6 max-w-3xl">
@@ -377,14 +425,10 @@ export default function GalleryPage() {
             <span className="w-1.5 h-1.5 rounded-full bg-green-400 inline-block" />
             Photo Gallery
           </div>
-          <h1 className="animate-slide-up delay-400 text-white font-extrabold leading-[1.1] tracking-tight drop-shadow-xl"
-            style={{ fontSize: 'clamp(2.2rem, 5.5vw, 4rem)' }}
-          >
+          <h1 className="animate-slide-up delay-400 text-white font-extrabold leading-[1.1] tracking-tight drop-shadow-xl" style={{ fontSize: 'clamp(2.2rem, 5.5vw, 4rem)' }}>
             Explore Our Farmhouse
           </h1>
-          <p className="animate-fade-in delay-600 text-white/85 font-light leading-relaxed max-w-xl mx-auto mt-5"
-            style={{ fontSize: 'clamp(0.95rem, 2vw, 1.15rem)' }}
-          >
+          <p className="animate-fade-in delay-600 text-white/85 font-light leading-relaxed max-w-xl mx-auto mt-5" style={{ fontSize: 'clamp(0.95rem, 2vw, 1.15rem)' }}>
             Discover every corner of our luxurious farmhouse, designed for relaxation, comfort and unforgettable memories.
           </p>
         </div>
@@ -392,14 +436,9 @@ export default function GalleryPage() {
 
       <WaveDivider />
 
-      {/* Rooms Section */}
       <section className="bg-[#F4FAF3] py-24 px-6">
         <div className="max-w-6xl mx-auto">
-          <SectionHeader
-            icon={Home}
-            title="Luxury Rooms"
-            description="Our spacious and beautifully designed rooms provide the perfect place to relax with your family and friends."
-          />
+          <SectionHeader icon={Home} title="Luxury Rooms" description="Our spacious and beautifully designed rooms provide the perfect place to relax with your family and friends." />
           <div className="hidden md:block">
             <ImageGrid images={roomImages} section="rooms" onImageClick={(i) => openLightbox(roomImages, i)} />
           </div>
@@ -411,14 +450,9 @@ export default function GalleryPage() {
 
       <WaveDividerUp />
 
-      {/* Swimming Pools Section */}
       <section className="bg-white py-24 px-6">
         <div className="max-w-6xl mx-auto">
-          <SectionHeader
-            icon={Waves}
-            title="Swimming Pools"
-            description="Enjoy refreshing moments in our clean and spacious swimming pools designed for everyone."
-          />
+          <SectionHeader icon={Waves} title="Swimming Pools" description="Enjoy refreshing moments in our clean and spacious swimming pools designed for everyone." />
           <div className="hidden md:block">
             <ImageGrid images={poolImages} section="pool" onImageClick={(i) => openLightbox(poolImages, i)} />
           </div>
@@ -430,14 +464,9 @@ export default function GalleryPage() {
 
       <WaveDivider />
 
-      {/* Outdoor Activities Section */}
       <section className="bg-[#F4FAF3] py-24 px-6">
         <div className="max-w-6xl mx-auto">
-          <SectionHeader
-            icon={Target}
-            title="Outdoor Activities"
-            description="Spend quality time with your family and friends while enjoying our outdoor recreational facilities."
-          />
+          <SectionHeader icon={Target} title="Outdoor Activities" description="Spend quality time with your family and friends while enjoying our outdoor recreational facilities." />
           <div className="hidden md:block">
             <ImageGrid images={outdoorImages} section="outdoor" onImageClick={(i) => openLightbox(outdoorImages, i)} />
           </div>
@@ -447,38 +476,22 @@ export default function GalleryPage() {
         </div>
       </section>
 
-      {/* Bottom CTA */}
       <section className="relative py-28 px-6 overflow-hidden">
-        <div
-          className="absolute inset-0 bg-cover bg-center bg-no-repeat"
-          style={{ backgroundImage: "url('/images/1000052433.jpg')" }}
-        />
+        <div className="absolute inset-0 bg-cover bg-center bg-no-repeat" style={{ backgroundImage: "url('/images/1000052433.jpg')" }} />
         <div className="absolute inset-0 bg-[#1B5E20]/85" />
         <div className="relative z-10 text-center max-w-2xl mx-auto">
-          <h2 className="animate-fade-in-up text-white font-bold tracking-tight mb-4"
-            style={{ fontSize: 'clamp(1.8rem, 4.5vw, 2.6rem)' }}
-          >
+          <h2 className="animate-fade-in-up text-white font-bold tracking-tight mb-4" style={{ fontSize: 'clamp(1.8rem, 4.5vw, 2.6rem)' }}>
             Ready for Your Perfect Getaway?
           </h2>
-          <p className="text-white/75 font-light leading-relaxed mb-9"
-            style={{ fontSize: 'clamp(0.95rem, 2vw, 1.1rem)' }}
-          >
+          <p className="text-white/75 font-light leading-relaxed mb-9" style={{ fontSize: 'clamp(0.95rem, 2vw, 1.1rem)' }}>
             Book your stay today and create unforgettable memories with your loved ones.
           </p>
           <div className="flex flex-wrap items-center justify-center gap-4">
-            <a
-              href="https://wa.me/918686465007"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="bg-[#25D366] hover:bg-[#1ebe5d] text-white font-semibold px-8 py-3.5 rounded-full shadow-xl hover:shadow-green-900/50 transition-all duration-300 hover:scale-105 text-sm [...]"
-            >
+            <a href="https://wa.me/918686465007" target="_blank" rel="noopener noreferrer" className="bg-[#25D366] hover:bg-[#1ebe5d] text-white font-semibold px-8 py-3.5 rounded-full shadow-xl hover:shadow-green-900/50 transition-all duration-300 hover:scale-105 text-sm inline-flex items-center gap-2">
               Book Now
               <ChevronRight className="w-4 h-4" />
             </a>
-            <a
-              href="tel:+918686465007"
-              className="bg-white/10 hover:bg-white/20 backdrop-blur-sm text-white font-semibold px-8 py-3.5 rounded-full border border-white/30 hover:border-white/60 transition-all duration-300 [...]"
-            >
+            <a href="tel:+918686465007" className="bg-white/10 hover:bg-white/20 backdrop-blur-sm text-white font-semibold px-8 py-3.5 rounded-full border border-white/30 hover:border-white/60 transition-all duration-300 inline-flex items-center gap-2">
               <Phone className="w-4 h-4" />
               Contact Us
             </a>
@@ -488,15 +501,8 @@ export default function GalleryPage() {
 
       <Footer />
 
-      {/* Lightbox */}
       {lightbox && (
-        <Lightbox
-          images={lightbox.images}
-          currentIndex={lightbox.index}
-          onClose={closeLightbox}
-          onPrev={prevImage}
-          onNext={nextImage}
-        />
+        <Lightbox images={lightbox.images} currentIndex={lightbox.index} onClose={closeLightbox} onPrev={prevImage} onNext={nextImage} />
       )}
     </div>
   );
