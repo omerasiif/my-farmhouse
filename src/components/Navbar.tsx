@@ -7,6 +7,7 @@ const navLinks = [
   { label: 'Gallery', to: '/gallery' },
   { label: 'Location', to: '/location' },
   { label: 'Contact', to: '/#contact' },
+  { label: 'Terms & Conditions', to: '/terms-and-conditions' },
 ];
 
 interface NavbarProps {
@@ -51,7 +52,8 @@ export default function Navbar({ alwaysSolid = false }: NavbarProps) {
           {navLinks.map(({ label, to }) => {
             const isActive =
               (to === '/' && location.pathname === '/') ||
-              (to === '/gallery' && location.pathname === '/gallery');
+              location.pathname === to ||
+              (to === '/gallery' && location.pathname.startsWith('/gallery'));
             return (
               <Link
                 key={label}
@@ -73,7 +75,7 @@ export default function Navbar({ alwaysSolid = false }: NavbarProps) {
             href="https://wa.me/918686465007"
             target="_blank"
             rel="noopener noreferrer"
-            className="ml-2 bg-[#25D366] hover:bg-[#1ebe5d] text-white text-sm font-semibold px-5 py-2.5 rounded-full transition-all duration-300 shadow-lg hover:shadow-green-900/40 hover:scale-105 border border-white/10"
+            className="ml-2 bg-[#25D366] hover:bg-[#1ebe5d] text-white text-sm font-semibold px-5 py-2.5 rounded-full transition-all duration-300 shadow-lg hover:shadow-green-900/40"
           >
             Book Now
           </a>
