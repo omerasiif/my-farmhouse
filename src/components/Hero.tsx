@@ -35,7 +35,7 @@ export default function Hero() {
         <div className="flex flex-col items-center text-center">
 
           {/* Badge */}
-          <div className="animate-fade-in delay-200 inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm border border-white/20 text-white/90 text-[11px] md:text-xs font-medium px-4 py-2 rounded-full tracking-widest uppercase">
+          <div className="animate-fade-in delay-200 inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm border border-white/20 text-white/90 text-[11px] md:text-xs font-medium px-4 py-2 rounded-full">
 
             <span className="w-2 h-2 rounded-full bg-green-400"></span>
 
@@ -91,6 +91,14 @@ export default function Hero() {
               className="w-full sm:w-auto bg-white text-[#2E7D32] hover:bg-green-100 font-semibold px-9 py-4 rounded-full transition-all duration-300 hover:scale-105"
             >
               Find Us
+            </Link>
+
+            {/* Terms & Conditions - MOBILE ONLY */}
+            <Link
+              to="/terms-and-conditions"
+              className="w-full sm:w-auto bg-white text-[#2E7D32] hover:bg-green-100 font-semibold px-9 py-4 rounded-full transition-all duration-300 hover:scale-105 md:hidden"
+            >
+              Terms & Conditions
             </Link>
 
           </div>
