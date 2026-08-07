@@ -10,6 +10,8 @@ import GalleryPage from '@/pages/GalleryPage';
 import LocationPage from '@/pages/LocationPage';
 import RoomsGallery from '@/pages/RoomsGallery';
 import OutdoorGallery from '@/pages/OutdoorGallery';
+import TermsConditions from '@/pages/TermsConditions';
+
 function ScrollToHash() {
   const { hash, pathname } = useLocation();
   useEffect(() => {
@@ -43,13 +45,14 @@ function App() {
     <BrowserRouter>
       <ScrollToHash />
      <Routes>
-  <Route path="/" element={<HomePage />} />
-  <Route path="/gallery" element={<GalleryPage />} />
-  <Route path="/location" element={<LocationPage />} />
+      <Route path="/" element={<HomePage />} />
+      <Route path="/gallery" element={<GalleryPage />} />
+      <Route path="/location" element={<LocationPage />} />
 
-  <Route path="/gallery/rooms" element={<RoomsGallery />} />
-  <Route path="/gallery/outdoor" element={<OutdoorGallery />} />
-</Routes>
+      <Route path="/gallery/rooms" element={<RoomsGallery />} />
+      <Route path="/gallery/outdoor" element={<OutdoorGallery />} />
+      <Route path="/terms-and-conditions" element={<TermsConditions />} />
+     </Routes>
     </BrowserRouter>
   );
 }
