@@ -125,7 +125,11 @@ function MobileCarousel({
       stopAutoplay();
       startX = e.clientX;
       moved = 0;
-      (e.target as Element).setPointerCapture(e.pointerId);
+      try {
+        (e.target as Element).setPointerCapture(e.pointerId);
+      } catch (err) {
+        // ignore
+      }
     }
     function onPointerMove(e: PointerEvent) {
       moved = e.clientX - startX;
@@ -185,7 +189,7 @@ function MobileCarousel({
             const card = (
               <div
                 key={i}
-                className="flex-shrink-0 rounded-3xl overflow-hidden shadow-lg bg-white"
+                className="flex-shrink-0 rounded-3xl overflow-hidden shadow-lg bg-white relative"
                 style={{ width: `${slideWidthVw}vw`, height: '200px' }}
               >
                 <img
