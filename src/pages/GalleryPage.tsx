@@ -107,7 +107,7 @@ function MobileCarousel({
 
   function stopAutoplay() {
     if (autoplayRef.current) {
-      clearInterval(autoplayRef.current);
+      clearInterval(autoplayRef.current as number);
       autoplayRef.current = null;
     }
   }
@@ -120,21 +120,21 @@ function MobileCarousel({
     let startX = 0;
     let moved = 0;
 
-    function onPointerDown(e: PointerEvent) {
+    function onPointerDown(e: any) {
       interactionRef.current = true;
       stopAutoplay();
-      startX = e.clientX;
+      startX = e.clientX ?? 0;
       moved = 0;
       try {
-        (e.target as Element).setPointerCapture(e.pointerId);
+        (e.target as Element).setPointerCapture?.(e.pointerId);
       } catch (err) {
         // ignore
       }
     }
-    function onPointerMove(e: PointerEvent) {
+    function onPointerMove(e: any) {
       moved = e.clientX - startX;
     }
-    function onPointerUp(e: PointerEvent) {
+    function onPointerUp() {
       interactionRef.current = false;
       const threshold = 40; // px
       if (moved > threshold) {
@@ -148,16 +148,16 @@ function MobileCarousel({
       setTimeout(() => startAutoplay(), 1200);
     }
 
-    el.addEventListener('pointerdown', onPointerDown);
-    el.addEventListener('pointermove', onPointerMove);
-    el.addEventListener('pointerup', onPointerUp);
-    el.addEventListener('pointercancel', onPointerUp);
+    el.addEventListener('pointerdown', onPointerDown as EventListener);
+    el.addEventListener('pointermove', onPointerMove as EventListener);
+    el.addEventListener('pointerup', onPointerUp as EventListener);
+    el.addEventListener('pointercancel', onPointerUp as EventListener);
 
     return () => {
-      el.removeEventListener('pointerdown', onPointerDown);
-      el.removeEventListener('pointermove', onPointerMove);
-      el.removeEventListener('pointerup', onPointerUp);
-      el.removeEventListener('pointercancel', onPointerUp);
+      el.removeEventListener('pointerdown', onPointerDown as EventListener);
+      el.removeEventListener('pointermove', onPointerMove as EventListener);
+      el.removeEventListener('pointerup', onPointerUp as EventListener);
+      el.removeEventListener('pointercancel', onPointerUp as EventListener);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [images.length]);
@@ -373,7 +373,7 @@ export default function GalleryPage() {
         <div className="absolute inset-0 bg-black/55" />
         <div className="absolute inset-0 bg-gradient-to-b from-[#1B5E20]/40 via-transparent to-black/40" />
         <div className="relative z-10 text-center px-6 max-w-3xl">
-          <div className="animate-fade-in delay-200 inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm border border-white/20 text-white/90 text-xs font-medium px-4 py-1.5 rounded-full t[...]
+          <div className="animate-fade-in delay-200 inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm border border-white/20 text-white/90 text-xs font-medium px-4 py-1.5 rounded-full">
             <span className="w-1.5 h-1.5 rounded-full bg-green-400 inline-block" />
             Photo Gallery
           </div>
@@ -400,13 +400,9 @@ export default function GalleryPage() {
             title="Luxury Rooms"
             description="Our spacious and beautifully designed rooms provide the perfect place to relax with your family and friends."
           />
-
-          {/* Desktop grid (unchanged) */}
           <div className="hidden md:block">
             <ImageGrid images={roomImages} section="rooms" onImageClick={(i) => openLightbox(roomImages, i)} />
           </div>
-
-          {/* Mobile carousel */}
           <div className="md:hidden">
             <MobileCarousel images={roomImages} section="rooms" onImageClick={(i) => openLightbox(roomImages, i)} />
           </div>
@@ -423,11 +419,9 @@ export default function GalleryPage() {
             title="Swimming Pools"
             description="Enjoy refreshing moments in our clean and spacious swimming pools designed for everyone."
           />
-
           <div className="hidden md:block">
             <ImageGrid images={poolImages} section="pool" onImageClick={(i) => openLightbox(poolImages, i)} />
           </div>
-
           <div className="md:hidden">
             <MobileCarousel images={poolImages} section="pool" onImageClick={(i) => openLightbox(poolImages, i)} />
           </div>
@@ -444,11 +438,9 @@ export default function GalleryPage() {
             title="Outdoor Activities"
             description="Spend quality time with your family and friends while enjoying our outdoor recreational facilities."
           />
-
           <div className="hidden md:block">
             <ImageGrid images={outdoorImages} section="outdoor" onImageClick={(i) => openLightbox(outdoorImages, i)} />
           </div>
-
           <div className="md:hidden">
             <MobileCarousel images={outdoorImages} section="outdoor" onImageClick={(i) => openLightbox(outdoorImages, i)} />
           </div>
@@ -478,14 +470,14 @@ export default function GalleryPage() {
               href="https://wa.me/918686465007"
               target="_blank"
               rel="noopener noreferrer"
-              className="bg-[#25D366] hover:bg-[#1ebe5d] text-white font-semibold px-8 py-3.5 rounded-full shadow-xl hover:shadow-green-900/50 transition-all duration-300 hover:scale-105 text-sm tracking-tight"
+              className="bg-[#25D366] hover:bg-[#1ebe5d] text-white font-semibold px-8 py-3.5 rounded-full shadow-xl hover:shadow-green-900/50 transition-all duration-300 hover:scale-105 text-sm [...]"
             >
               Book Now
               <ChevronRight className="w-4 h-4" />
             </a>
             <a
               href="tel:+918686465007"
-              className="bg-white/10 hover:bg-white/20 backdrop-blur-sm text-white font-semibold px-8 py-3.5 rounded-full border border-white/30 hover:border-white/60 transition-all duration-300 hover:scale-105 text-sm tracking-tight"
+              className="bg-white/10 hover:bg-white/20 backdrop-blur-sm text-white font-semibold px-8 py-3.5 rounded-full border border-white/30 hover:border-white/60 transition-all duration-300 [...]"
             >
               <Phone className="w-4 h-4" />
               Contact Us
