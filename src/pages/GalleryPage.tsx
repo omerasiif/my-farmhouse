@@ -1,6 +1,4 @@
-
-
- import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Home, Waves, Target, Phone, ChevronRight } from 'lucide-react';
 import Navbar from '@/components/Navbar';
@@ -73,238 +71,6 @@ function SectionHeader({ icon: Icon, title, description }: { icon: typeof Home; 
   );
 }
 
-function MobileCarousel({
-  images,
-  section,
-  onImageClick,
-}: {
-  images: GalleryImage[];
-  section: 'rooms' | 'pool' | 'outdoor';
-  onImageClick: (index: number) => void;
-}) {
-  const isMoreCardIndex = 2;
-  const containerRef = useRef<HTMLDivElement | null>(null);
-  const firstCardRef = useRef<HTMLDivElement | null>(null);
-
-  const [index, setIndex] = useState(0);
-  const [step, setStep] = useState(0);
-
-  const autoplayRef = useRef<number | null>(null);
-  const interactionRef = useRef(false);
-
-  const GAP_PX = 16;
-  const transitionMs = 700;
-  const autoplayMs = 6000;
-
-  useEffect(() => {
-    const measure = () => {
-      if (firstCardRef.current) {
-        const w = firstCardRef.current.getBoundingClientRect().width;
-        setStep(w + GAP_PX);
-      }
-    };
-    measure();
-    const ro = new ResizeObserver(measure);
-    if (firstCardRef.current) ro.observe(firstCardRef.current);
-    window.addEventListener('resize', measure);
-    return () => {
-      ro.disconnect();
-      window.removeEventListener('resize', measure);
-    };
-  }, [images.length]);
-
-  useEffect(() => {
-    startAutoplay();
-    return () => stopAutoplay();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [images.length]);
-
-  function startAutoplay() {
-    stopAutoplay();
-    autoplayRef.current = window.setInterval(() => {
-      if (!interactionRef.current) {
-        setIndex((i) => (i + 1) % images.length);
-      }
-    }, autoplayMs) as unknown as number;
-  }
-
-  function stopAutoplay() {
-    if (autoplayRef.current) {
-      clearInterval(autoplayRef.current);
-      autoplayRef.current = null;
-    }
-  }
-
-  function clampIndex(i: number) {
-    return Math.max(0, Math.min(i, images.length - 1));
-  }
-
-  useEffect(() => {
-    const el = containerRef.current;
-    if (!el) return;
-
-    let startX = 0;
-    let startY = 0;
-    let deltaX = 0;
-    let dragging = false;
-
-    function onStart(clientX: number, clientY: number) {
-      dragging = true;
-      interactionRef.current = true;
-      stopAutoplay();
-      startX = clientX;
-      startY = clientY;
-      deltaX = 0;
-    }
-    function onMove(clientX: number, clientY: number) {
-      if (!dragging) return;
-      deltaX = clientX - startX;
-      const deltaY = clientY - startY;
-      if (Math.abs(deltaX) < Math.abs(deltaY)) return;
-    }
-    function onEnd() {
-      if (!dragging) return;
-      dragging = false;
-      const threshold = 40;
-      if (deltaX > threshold) {
-        setIndex((i) => clampIndex(i - 1));
-      } else if (deltaX < -threshold) {
-        setIndex((i) => clampIndex(i + 1));
-      }
-      interactionRef.current = false;
-      setTimeout(() => startAutoplay(), 1200);
-    }
-
-    function onTouchStart(e: TouchEvent) {
-      const t = e.touches[0];
-      onStart(t.clientX, t.clientY);
-    }
-    function onTouchMove(e: TouchEvent) {
-      const t = e.touches[0];
-      onMove(t.clientX, t.clientY);
-    }
-    function onTouchEnd() {
-      onEnd();
-    }
-
-    function onPointerDown(e: PointerEvent) {
-      if (e.pointerType === 'touch') return;
-      onStart(e.clientX, e.clientY);
-    }
-    function onPointerMove(e: PointerEvent) {
-      if (e.pointerType === 'touch') return;
-      onMove(e.clientX, e.clientY);
-    }
-    function onPointerUp(e: PointerEvent) {
-      if (e.pointerType === 'touch') return;
-      onEnd();
-    }
-
-    el.addEventListener('touchstart', onTouchStart, { passive: true });
-    el.addEventListener('touchmove', onTouchMove, { passive: true });
-    el.addEventListener('touchend', onTouchEnd);
-    el.addEventListener('touchcancel', onTouchEnd);
-    el.addEventListener('pointerdown', onPointerDown);
-    el.addEventListener('pointermove', onPointerMove);
-    el.addEventListener('pointerup', onPointerUp);
-    el.addEventListener('pointercancel', onPointerUp);
-
-    return () => {
-      el.removeEventListener('touchstart', onTouchStart);
-      el.removeEventListener('touchmove', onTouchMove);
-      el.removeEventListener('touchend', onTouchEnd);
-      el.removeEventListener('touchcancel', onTouchEnd);
-      el.removeEventListener('pointerdown', onPointerDown);
-      el.removeEventListener('pointermove', onPointerMove);
-      el.removeEventListener('pointerup', onPointerUp);
-      el.removeEventListener('pointercancel', onPointerUp);
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [images.length]);
-
-  useEffect(() => {
-    setIndex((i) => clampIndex(i));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [images.length]);
-
-  const translateX = step ? -(index * step) : 0;
-  const trackWidth = step ? images.length * step - GAP_PX : undefined;
-
-  const linkForSection = section === 'rooms' ? '/gallery/rooms' : '/gallery/outdoor';
-
-  return (
-    <div className="md:hidden">
-      <div
-        ref={containerRef}
-        className="relative w-full overflow-hidden"
-        style={{ touchAction: 'pan-y' }}
-        aria-roledescription="carousel"
-      >
-        <div
-          className="flex items-stretch"
-          style={{
-            gap: `${GAP_PX}px`,
-            width: trackWidth ? `${trackWidth}px` : undefined,
-            transform: `translateX(${translateX}px)`,
-            transition: `transform ${transitionMs}ms ease`,
-          }}
-        >
-          {images.map((img, i) => {
-            const isMoreCard = i === isMoreCardIndex && (section === 'rooms' || section === 'outdoor');
-            const cardStyle: React.CSSProperties = {
-              width: '45vw',
-              maxWidth: '220px',
-              flexShrink: 0,
-            };
-
-            const card = (
-              <div className="rounded-3xl overflow-hidden shadow-lg bg-white relative" style={{ height: '190px' }}>
-                <img
-                  src={img.src}
-                  alt={img.label}
-                  style={{ width: '100%', height: '190px', objectFit: 'cover' }}
-                  draggable={false}
-                />
-                {isMoreCard ? (
-                  <div className="absolute inset-0 flex items-center justify-center text-white pointer-events-none">
-                    <div className="absolute inset-0 bg-black/30 rounded-3xl" />
-                    <div className="relative z-10 text-2xl font-bold text-white">{section === 'rooms' ? '+5' : '+6'}</div>
-                  </div>
-                ) : (
-                  <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-3 rounded-b-3xl">
-                    <h3 className="text-white text-sm font-semibold">{img.label}</h3>
-                  </div>
-                )}
-              </div>
-            );
-
-            if (isMoreCard) {
-              return (
-                <Link key={i} to={linkForSection} aria-label={`View all ${section}`} style={cardStyle} ref={i === 0 ? firstCardRef : undefined}>
-                  {card}
-                </Link>
-              );
-            }
-
-            return (
-              <button
-                key={i}
-                onClick={() => onImageClick(i)}
-                aria-label={`Open ${img.label}`}
-                className="p-0 border-0 bg-transparent text-left"
-                style={cardStyle}
-                ref={i === 0 ? firstCardRef : undefined}
-              >
-                {card}
-              </button>
-            );
-          })}
-        </div>
-      </div>
-    </div>
-  );
-}
-
 function ImageGrid({
   images,
   section,
@@ -355,6 +121,80 @@ function ImageGrid({
           <div key={index} onClick={() => onImageClick(index)}>
             {card}
           </div>
+        );
+      })}
+    </div>
+  );
+}
+
+function MobileVerticalGallery({
+  images,
+  section,
+  onImageClick,
+}: {
+  images: GalleryImage[];
+  section: 'rooms' | 'pool' | 'outdoor';
+  onImageClick: (index: number) => void;
+}) {
+  const linkForSection = section === 'rooms' ? '/gallery/rooms' : '/gallery/outdoor';
+
+  return (
+    <div className="md:hidden space-y-4">
+      {images.map((img, index) => {
+        const isMoreCard =
+          (section === 'rooms' && index === 2) ||
+          (section === 'outdoor' && index === 2);
+
+        const remaining = section === 'rooms' ? '+5' : '+6';
+
+        const card = (
+          <div className="relative overflow-hidden rounded-3xl shadow-lg w-full">
+            <img
+              src={img.src}
+              alt={img.label}
+              style={{
+                width: '100%',
+                height: '250px',
+                objectFit: 'cover',
+                display: 'block',
+              }}
+              draggable={false}
+            />
+            {isMoreCard ? (
+              <div className="absolute inset-0 bg-black/30 flex items-center justify-center text-white pointer-events-none">
+                <div className="absolute inset-0 bg-black/30 rounded-3xl" />
+                <div className="relative z-10 text-3xl font-bold text-white">{remaining}</div>
+              </div>
+            ) : (
+              <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-3 rounded-b-3xl">
+                <h3 className="text-white text-sm font-semibold">{img.label}</h3>
+              </div>
+            )}
+          </div>
+        );
+
+        if (isMoreCard) {
+          return (
+            <Link
+              key={index}
+              to={linkForSection}
+              aria-label={`View all ${section}`}
+              className="block w-full"
+            >
+              {card}
+            </Link>
+          );
+        }
+
+        return (
+          <button
+            key={index}
+            onClick={() => onImageClick(index)}
+            aria-label={`Open ${img.label}`}
+            className="w-full p-0 border-0 bg-transparent text-left"
+          >
+            {card}
+          </button>
         );
       })}
     </div>
@@ -426,7 +266,7 @@ export default function GalleryPage() {
             <ImageGrid images={roomImages} section="rooms" onImageClick={(i) => openLightbox(roomImages, i)} />
           </div>
           <div className="md:hidden">
-            <MobileCarousel images={roomImages} section="rooms" onImageClick={(i) => openLightbox(roomImages, i)} />
+            <MobileVerticalGallery images={roomImages} section="rooms" onImageClick={(i) => openLightbox(roomImages, i)} />
           </div>
         </div>
       </section>
@@ -440,7 +280,7 @@ export default function GalleryPage() {
             <ImageGrid images={poolImages} section="pool" onImageClick={(i) => openLightbox(poolImages, i)} />
           </div>
           <div className="md:hidden">
-            <MobileCarousel images={poolImages} section="pool" onImageClick={(i) => openLightbox(poolImages, i)} />
+            <MobileVerticalGallery images={poolImages} section="pool" onImageClick={(i) => openLightbox(poolImages, i)} />
           </div>
         </div>
       </section>
@@ -454,7 +294,7 @@ export default function GalleryPage() {
             <ImageGrid images={outdoorImages} section="outdoor" onImageClick={(i) => openLightbox(outdoorImages, i)} />
           </div>
           <div className="md:hidden">
-            <MobileCarousel images={outdoorImages} section="outdoor" onImageClick={(i) => openLightbox(outdoorImages, i)} />
+            <MobileVerticalGallery images={outdoorImages} section="outdoor" onImageClick={(i) => openLightbox(outdoorImages, i)} />
           </div>
         </div>
       </section>
@@ -470,11 +310,11 @@ export default function GalleryPage() {
             Book your stay today and create unforgettable memories with your loved ones.
           </p>
           <div className="flex flex-wrap items-center justify-center gap-4">
-            <a href="https://wa.me/918686465007" target="_blank" rel="noopener noreferrer" className="bg-[#25D366] hover:bg-[#1ebe5d] text-white font-semibold px-8 py-3.5 rounded-full shadow-xl hover:shadow-green-900/50 transition-all duration-300 hover:scale-105 text-sm inline-flex items-center gap-2">
+            <a href="https://wa.me/918686465007" target="_blank" rel="noopener noreferrer" className="bg-[#25D366] hover:bg-[#1ebe5d] text-white font-semibold px-8 py-3.5 rounded-full shadow-xl hover:shadow-2xl transition duration-300 inline-flex items-center gap-2">
               Book Now
               <ChevronRight className="w-4 h-4" />
             </a>
-            <a href="tel:+918686465007" className="bg-white/10 hover:bg-white/20 backdrop-blur-sm text-white font-semibold px-8 py-3.5 rounded-full border border-white/30 hover:border-white/60 transition-all duration-300 inline-flex items-center gap-2">
+            <a href="tel:+918686465007" className="bg-white/10 hover:bg-white/20 backdrop-blur-sm text-white font-semibold px-8 py-3.5 rounded-full border border-white/30 hover:border-white/60 transition duration-300 inline-flex items-center gap-2">
               <Phone className="w-4 h-4" />
               Contact Us
             </a>
