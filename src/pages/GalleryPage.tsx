@@ -11,9 +11,9 @@ interface GalleryImage {
 }
 
 const roomImages: GalleryImage[] = [
-  { src: "/images/room1.png", label: "Room 1" },
-  { src: "/images/room2.png", label: "Room 2" },
-  { src: "/images/room3.png", label: "View All Rooms" },
+  { src: "/images/room2new.jpeg", label: "Room 1" },
+  { src: "/images/room2ou.jpeg", label: "Room 2" },
+  { src: "/images/room2.png", label: "View All Rooms" },
 ];
 const poolImages: GalleryImage[] = [
   { src: "/images/64df4da9-621d-4df4-852e-c60637c31810.png", label: "Swimming Pool 1" },
@@ -22,9 +22,9 @@ const poolImages: GalleryImage[] = [
 ];
 
 const outdoorImages: GalleryImage[] = [
-  { src: "/images/od1.png", label: "Outdoor Activity 1" },
-  { src: "/images/od2.png", label: "Outdoor Activity 2" },
-  { src: "/images/od3.png", label: "View All Activities" },
+  { src: "/images/od1new.jpeg", label: "Outdoor Activity 1" },
+  { src: "/images/od2new.jpeg", label: "Outdoor Activity 2" },
+  { src: "/images/od3new.jpeg", label: "View All Activities" },
 ];
 
 function useScrollReveal() {
