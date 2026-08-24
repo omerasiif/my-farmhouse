@@ -59,27 +59,16 @@ export default function LocationPage() {
       <section className="bg-white py-20 px-6">
         <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-10 items-start">
 
-          {/* Left — Map */}
-          <div className="animate-fade-in-up order-1">
-            <div className="rounded-3xl overflow-hidden shadow-[0_10px_40px_rgba(46,125,50,0.12)] border border-green-50 min-h-[420px]">
-<iframe
-  src="https://example.com"
+         <iframe
+  src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3808.895399078512!2d78.23643897514268!3d17.32059530472588!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3bcbebddb3b5be17%3A0x80cc09c99cf64491!2sMY%20Farmhouse!5e0!3m2!1sen!2sin!4v1787579266697!5m2!1sen!2sin"
   width="100%"
   height="420"
   style={{ border: 0 }}
+  allowFullScreen
+  loading="lazy"
+  referrerPolicy="strict-origin-when-cross-origin"
+  title="MY Farmhouse location on Google Maps"
 />
-            </div>
-            <a
-              href={MAPS_LINK}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="mt-6 w-full bg-[#2E7D32] hover:bg-[#388E3C] text-white font-semibold px-7 py-4 rounded-full shadow-lg hover:shadow-green-900/30 hover:scale-[1.02] transition-all duration-300 text-sm tracking-wide inline-flex items-center justify-center gap-2.5"
-            >
-              <MapPin className="w-5 h-5" />
-              Open in Google Maps
-            </a>
-          </div>
-
           {/* Right — Info cards */}
           <div className="flex flex-col gap-6 order-2">
 
