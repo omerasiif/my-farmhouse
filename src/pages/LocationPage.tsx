@@ -4,8 +4,7 @@ import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 
 const MAPS_LINK =
-  'https://www.google.com/maps/place/MY+Farmhouse/@17.3205953,78.236439,17z/data=!3m1!4b1!4m6!3m5!1s0x3bcbebddb3b5be17:0x80cc09c99cf64491!8m2!3d17.3205902!4d78.2390139!16s%2Fg%2F11s_tng_b9?entry=ttu&g_ep=EgoyMDI2MDcyOS4wIKXMDSoASAFQAw%3D%3D';
-
+  'https://maps.app.goo.gl/6cZ5dG3XdHJcsDLRA';
 const MAPS_EMBED =
   'https://www.google.com/maps/embed?pb=!1m14!1m8!1m3!1d3808.895399176488!2d78.236439!3d17.3205953!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3bcbebddb3b5be17%3A0x80cc09c99cf64491!2sMY%20Farmhouse!5e0!3m2!1sen!2sin!4v1785685717008!5m2!1sen!2sin';
 
@@ -55,7 +54,7 @@ export default function LocationPage() {
         </div>
       </section>
 
-     {/* Two-column content */}
+    {/* Two-column content */}
 <section className="bg-white py-20 px-6">
   <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-10 items-start">
 
