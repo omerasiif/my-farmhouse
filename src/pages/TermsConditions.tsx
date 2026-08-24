@@ -50,7 +50,7 @@ export default function TermsConditions() {
 
             <p className="mt-4 text-gray-700"> </p>
 
-            <p className="mt-6 font-semibold text-[#1B5E20]">**Complete balance to be paid on arrival**</p>
+            <p className="mt-6 font-semibold text-[#1B5E20]">**Complete balance to be paid before arival**</p>
           </div>
 
           <div className="flex items-center gap-4 mt-4">
